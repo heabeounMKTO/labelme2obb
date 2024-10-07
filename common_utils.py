@@ -38,6 +38,11 @@ def load_img_json_pair(json_path: str):
     img_data = cv2.imread(img_path)
     return img_data, json_data
 
+def xy42xy4n(x):
+    '''
+    normalize obb coords
+    '''
+    y = x
 
 def xyxy2xywh(x):
     # Convert nx4 boxes from [x1, y1, x2, y2] to [x, y, w, h] where xy1=top-left, xy2=bottom-right
@@ -101,11 +106,23 @@ def get_yolo_coords(input_image: np.ndarray, input_xy_pair: list):
     rotation_angle = calculate_rotation_angle([xywh[0], xywh[1]], input_xy_pair[1])
     xywhn = xywh2xywhn(xywh, w , h)
     xywhn = xywhn.tolist()
-    xywhn.append(float(rotation_angle))
+    # xywhn.append(float(rotation_angle))
     return xywhn
+
+
+def get_yolo_obb_coords(input_image: np.ndarray, input_xy4: list):
+    pass
 
 def get_img_path_from_labelme(folder_path: str , labelme_data: dict):
     return os.path.join(folder_path, labelme_data["imagePath"])
+
+def write_yolo2txt(yolo_anno: list, file_path: str):
+    with open(file_path, "w") as f:
+        for anno in yolo_anno:
+            f.write(str(anno))
+            f.write(" ")
+        f.write("\n")
+
 
 def get_file_in_folder_with_extension(folder_path, extension_name: str | list[str]):
     fuck = []
