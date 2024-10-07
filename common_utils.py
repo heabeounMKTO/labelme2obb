@@ -1,7 +1,19 @@
 import numpy as np
+import json
 
-def find_xyxy(input_data):
-    xyxy = input_data["shapes"][0]["points"]
+
+def load_json(json_path: str):
+    with open(json_path, "rb") as readfile:
+        data = json.loads(readfile.read())
+    return data
+
+def find_rect_from4(input_data):
+    """
+    given four coordinate pairs [xy1, xy2, xy3, xy4] in no particular order, 
+    returns rectangle coordinate in this order :
+    `top_left, top_right, bottom_left, bottom_right`
+    """
+    xyxy = input_data.copy()
     xyxy = np.array(xyxy)
     top_left = xyxy[np.argmin(xyxy.sum(axis=1))]
     bottom_right = xyxy[np.argmax(xyxy.sum(axis=1))]
@@ -17,7 +29,7 @@ def calculate_rotation_angle(p1, p2):
     """
     delta_x = p2[0] - p1[0]
     delta_y = p2[1] - p1[1]
-    return np.arctan2(delta_y, delta_x) * 180.0 / np.pi
+    return float(np.arctan2(delta_y, delta_x) * 180.0 / np.pi)
 
 # stolen from yolov7 
 def xyxy2xywh(x):
@@ -76,4 +88,11 @@ def calculate_center(input_coords):
     cy = (y1 + y2) / 2
     return (cx, cy)
 
-
+def get_yolo_coords(input_image: np.ndarray, input_xy_pair: list):
+    (h, w) = input_image.shape[:2]
+    xywh = xyxy2xywh(np.array(input_xy_pair).flatten())
+    rotation_angle = calculate_rotation_angle([xywh[0], xywh[1]], input_xy_pair[1])
+    xywhn = xywh2xywhn(xywh, w , h)
+    xywhn = xywhn.tolist()
+    xywhn.append(float(rotation_angle))
+    return xywhn
