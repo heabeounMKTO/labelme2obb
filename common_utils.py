@@ -1,6 +1,7 @@
 import numpy as np
+import os
 import json
-
+import cv2
 
 def load_json(json_path: str):
     with open(json_path, "rb") as readfile:
@@ -31,7 +32,13 @@ def calculate_rotation_angle(p1, p2):
     delta_y = p2[1] - p1[1]
     return float(np.arctan2(delta_y, delta_x) * 180.0 / np.pi)
 
-# stolen from yolov7 
+def load_img_json_pair(json_path: str):
+    json_data = load_json(json_path)
+    img_path = get_img_path_from_labelme(os.path.split(json_path)[0],json_data) 
+    img_data = cv2.imread(img_path)
+    return img_data, json_data
+
+
 def xyxy2xywh(x):
     # Convert nx4 boxes from [x1, y1, x2, y2] to [x, y, w, h] where xy1=top-left, xy2=bottom-right
     y = x
@@ -96,3 +103,15 @@ def get_yolo_coords(input_image: np.ndarray, input_xy_pair: list):
     xywhn = xywhn.tolist()
     xywhn.append(float(rotation_angle))
     return xywhn
+
+def get_img_path_from_labelme(folder_path: str , labelme_data: dict):
+    return os.path.join(folder_path, labelme_data["imagePath"])
+
+def get_file_in_folder_with_extension(folder_path, extension_name: str | list[str]):
+    fuck = []
+    if type(extension_name) == list:
+        extension_name = tuple(extension_name)
+    for file in os.listdir(folder_path):
+        if file.endswith(extension_name):
+            fuck.append(os.path.join(folder_path,file))
+    return fuck
